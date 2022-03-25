@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon">
+        <link rel="icon" href="static/favicon.ico" type="image/x-icon">
+        <meta charset="utf-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+        <title>CyberRange 2022</title>
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css?family=Anaheim&amp;display=swap">
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap">
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+        <link rel="stylesheet" href="static/assets/css/Footer-Dark.css">
+        <link rel="stylesheet" href="static/assets/css/styles.css">
+        <!-- AJAX JQuery and all stuff inserted after BootStrap Generated -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+        function insert_time(){
+            var current = new Date()
+            insert_current = ("0"+current.getHours()).slice(-2) + ":" +("0"+current.getMinutes()).slice(-2) + ":" + ("0"+current.getSeconds()).slice(-2) +  " - "
+            return insert_current
+        }
+        $(document).ready(function () {
+            max_case = 10   // change this if number of cases are changed
+            {% for per_case in cases.cases %}
+            // button action for pressing Get Score
+            $("button#score{{per_case.id}}").click(function () {
+                $(this).prop("disabled", true);
+                // add spinner to button
+                $(this).html(
+                    `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Scoring...`
+                );
+                $.getJSON("/getscore?id={{per_case.id}}", function (data, status) {
+                   if (data.result == 'ok') {
+                        // we need to calculate back the total, unless data.score =0 then no impact to the total score , strangely, we must put this in .always(?)
+                        if (data.score!=0){
+                            // get current total, this is score_table[1][max_case], also get currect case score, and do the calculation
+                            current_tot_score = parseInt(document.getElementById('score_table').rows[1].cells[max_case].innerHTML);
+                            current_score = parseInt(document.getElementById('score_table').rows[1].cells[{{per_case.id}}-1].innerHTML)
+                            document.getElementById('score_table').rows[1].cells[max_case].innerHTML = current_tot_score - current_score + data.score
+                        }
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + insert_time() +
+                            'Case {{per_case.id}} - Score : ' + data.score + ' - ' + data.notes;
+                        document.getElementById("returntext").scrollTop = document.getElementById("returntext").scrollHeight;
+                        document.getElementById('score_table').rows[1].cells[{{per_case.id}}-1].innerHTML=data.score;
+                    } else {
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + insert_time() +
+                            'Score Case {{per_case.id}} : ' + data.reason;
+                        document.getElementById("returntext").scrollTop = document.getElementById("returntext").scrollHeight;
+                    }
+                })
+                    .done(function () { })
+                    .fail(function () {
+                        alert("Error connecting to FTS");
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + "Score Fails - ERROR connecting to FTS\n"
+                    })
+                    .always(function () {
+                        $("button#score{{per_case.id}}").prop("disabled", false);
+                        $("button#score{{per_case.id}}").html('Score');
+                    })
+            });
+
+            // action for button run test
+            $("button#test{{per_case.id}}").click(function () {
+                $(this).prop("disabled", true);
+                // add spinner to button
+                $(this).html(
+                    `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Testing...`
+                );
+                $.getJSON("/runtest?id={{per_case.id}}", function (data, status) {
+                    if (data.result == 'ok') {
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + insert_time() + data.reason;
+                        document.getElementById("returntext").scrollTop = document.getElementById("returntext").scrollHeight;
+                    } else {
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + insert_time() + data.reason;
+                        document.getElementById("returntext").scrollTop = document.getElementById("returntext").scrollHeight;
+                    }
+                })
+                    .done(function () { })
+                    .fail(function () {
+                        alert("Error connecting to FTS");
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + "Run Test Fails - ERROR connecting to FTS\n"
+                    })
+                    .always(function () {
+                        $("button#test{{per_case.id}}").prop("disabled", false);
+                        $("button#test{{per_case.id}}").html('Run Test');
+                    })
+            });
+
+            {% endfor %}
+
+            $("button#stoptest").click(function () {
+                $(this).prop("disabled", true);
+                // add spinner to button
+                $(this).html(
+                    `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Stopping...`
+                );
+                $.getJSON("/stoptest", function (data, status) {
+                    document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + insert_time() + data.notes;
+                    document.getElementById("returntext").scrollTop = document.getElementById("returntext").scrollHeight;
+                })
+                    .done(function () { })
+                    .fail(function () {
+                        alert("Error connecting to FTS");
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + "ERROR connecting to FTS\n"
+                    })
+                    .always(function () {
+                        $("button#stoptest").prop("disabled", false);
+                        $("button#stoptest").html('Stop Running Test');
+                    })
+            });
+
+            $("button#status").click(function () {
+                $(this).prop("disabled", true);
+                // add spinner to button
+                $(this).html(
+                    `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...`
+                );
+                $.getJSON("/getstatus", function (data, status) {
+                    document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + insert_time() +
+                        data.Data.TestName + " - " + data.Data.ErrorMessage + " - Start :" + data.Data.StartTime + "- Status :" + data.Data.TestStatus + "\n"
+                    document.getElementById("returntext").scrollTop = document.getElementById("returntext").scrollHeight;
+                })
+                    .done(function () { })
+                    .fail(function () {
+                        alert("Error connecting to FTS");
+                        document.getElementById("returntext").value = document.getElementById("returntext").value + "\n" + "ERROR connecting to FTS\n"
+                    })
+                    .always(function () {
+                        $("button#status").prop("disabled", false);
+                        $("button#status").html('Get Status');
+                    })
+            });
+
+            $('[data-toggle=”tooltip”]').tooltip(); // enable tool-tip
+        });
+        </script>
+        <!-- End of Script inserted after BootStrap Generated -->
+    </head>
+    <body style="font-family: Inter, sans-serif;">
+        <header>
+            <div class="row">
+                <div class="col d-flex">
+                    <img class="img-fluid d-lg-flex mx-auto d-block"
+                         src="static/assets/img/fortinet-logo.svg"
+                         width="300">
+                </div>
+                <div class="col d-flex py-2">
+                    <div class="row">
+                        <div class="col-xxl-9">
+                            <h1 class="fs-2 fw-bolder text-center">Cyber Range 2022</h1>
+                            <div class="row mt-1" style="background-color:black;color:white;text-align: center;">
+                            <h5>[Pod-{{pod_id}}] {{pod_name}}</h5></div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col text-center">
+                                    <a href="https://{{ fgtip }}" target="_blank">
+                                    <img class="ms-2" src="static/assets/img/fgt-icon.png" height="32" data-toggle="tooltip" title="Go To FortiGate GUI">
+                                    </a>
+                                    <a href="https://{{ fwbip }}" target="_blank">
+                                    <img src="static/assets/img/fweb-icon.png" height="32" data-toggle="tooltip" title="Go To FortiWeb GUI">
+                                    </a>
+                                    <a href="https://{{ ftsip }}" target="_blank">
+                                    <img src="static/assets/img/fts-icon.png" height="32"data-toggle="tooltip" title="Go To FortiTester GUI">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col d-flex py-2">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col text-center py-1">
+                                <button class="btn btn-danger me-3 ms-2" type="button" id='stoptest'>Stop Test</button>
+                                <button class="btn btn-danger" type="button" id='status'>Get FTS Status</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div class="row">
+                <div class="col"
+                     style="color: var(--bs-blue);
+                            background: var(--bs-gray-400);">
+                    <div class="container">
+                        <div class="table-responsive" style="padding: 1em 1em;">
+                            <table class="table" id = "score_table">
+                                <!-- added id -->
+                                <thead>
+                                    <tr>
+                                        <th>Case 1</th>
+                                        <th>Case 2</th>
+                                        <th>Case 3</th>
+                                        <th>Case 4</th>
+                                        <th>Case 5</th>
+                                        <th>Case 6</th>
+                                        <th>Case 7</th>
+                                        <th>Case 8</th>
+                                        <th>Case 9</th>
+                                        <th>Case 10</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <!-- replace all the score items -->
+                                        <td>{{ score_all[0] }}</td>
+                                        <td>{{ score_all[1] }}</td>
+                                        <td>{{ score_all[2] }}</td>
+                                        <td>{{ score_all[3] }}</td>
+                                        <td>{{ score_all[4] }}</td>
+                                        <td>{{ score_all[5] }}</td>
+                                        <td>{{ score_all[6] }}</td>
+                                        <td>{{ score_all[7] }}</td>
+                                        <td>{{ score_all[8] }}</td>
+                                        <td>{{ score_all[9] }}</td>
+                                        <td>{{ total_score }}</td>
+                                    </tr>
+                                    <tr>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-xl-8 py-2">
+                                <div class="accordion" role="tablist" id="accordion-1">
+                                    {% for per_case in cases.cases %}
+                                        <!-- one item menu starts here-->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" role="tab" id="heading{{ per_case.id }}">
+                                                <button class="accordion-button {% if per_case.id != 999 %}collapsed{% endif %}"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapse{{ per_case.id }}"
+                                                        aria-expanded="{% if per_case.id == 999 %}True{% else %}False{% endif %}"
+                                                        aria-controls="collapse{{ per_case.id }}">
+                                                    {{ per_case.title }}
+                                                </button>
+                                            </h2> <!--change this to show first, if it works later change to  {% if per_case.id == 1 %}show{% endif %} -->
+                                            <div id="collapse{{ per_case.id }}" class="accordion-collapse collapse {% if per_case.id == 999 %}show{% endif %}" 
+                                                 role="tabpanel"
+                                                 data-bs-parent="#accordion-1"
+                                                 style="opacity: 1;">
+                                                <div class="accordion-body">
+                                                {% if per_case.id != 999 %} <!-- we will use id 999 for General Guidelines, need no button -->
+                                                    <p class="text-end">
+                                                        <button class="btn btn-primary me-3" type="button" id="test{{ per_case.id }}">
+                                                            Test
+                                                        </button>
+                                                        <button class="btn btn-primary" type="button" id="score{{ per_case.id }}">
+                                                            Score
+                                                        </button>
+                                                    </p>
+                                                {% endif %}
+                                                    <p class="mb-0"> <ul><ul>
+                                                        {% for per_item in per_case.description %}
+                                                        <li>{{ per_item }}</li>
+                                                        {% endfor %}
+                                                        </ul></ul>
+                                                    </p>
+                                                {% if per_case.diagram is defined %}
+                                                    <img src="static/{{ per_case.diagram }}" class="img-fluid" style="height:600px">
+                                                {% endif %}
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <!-- one item menu ends here-->
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col py-2">
+                                <textarea id="returntext" style="width: 100%;font-family: Anaheim, sans-serif;background: var(--bs-gray-800);color: var(--bs-cyan);box-shadow: 5px 3px var(--bs-gray);height: 100%;padding: 1em 1em;">System is initialized. Ready for Action</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="footer-dark">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6 col-md-3 item">
+                        <h3>
+                            Services
+                        </h3>
+                        <ul>
+                            <li>
+                                <a href="#">Web design</a>
+                            </li>
+                            <li>
+                                <a href="#">Development</a>
+                            </li>
+                            <li>
+                                <a href="#">Hosting</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-sm-6 col-md-3 item">
+                        <h3>
+                            About
+                        </h3>
+                        <ul>
+                            <li>
+                                <a href="#">Company</a>
+                            </li>
+                            <li>
+                                <a href="#">Team</a>
+                            </li>
+                            <li>
+                                <a href="#">Careers</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 item text">
+                        <h3>
+                            Company Name
+                        </h3>
+                        <p>
+                            Praesent sed lobortis mi. Suspendisse vel placerat ligula. Vivamus ac sem lacus. Ut vehicula rhoncus elementum. Etiam quis tristique lectus. Aliquam in arcu eget velit pulvinar dictum vel in justo.
+                        </p>
+                    </div>
+                    <div class="col item social">
+                        <a href="#"><i class="icon ion-social-facebook"></i></a><a href="#"><i class="icon ion-social-twitter"></i></a><a href="#"><i class="icon ion-social-snapchat"></i></a><a href="#"><i class="icon ion-social-instagram"></i></a>
+                    </div>
+                </div>
+                <p class="copyright">
+                    Company Name © 2022
+                </p>
+            </div>
+        </footer>
+    <!-- Optional JavaScript; choose one of the two! -->
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    </body>
+
+    
+</html>

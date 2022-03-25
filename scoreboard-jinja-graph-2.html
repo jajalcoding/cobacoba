@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+    
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+              rel="stylesheet"
+              integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+              crossorigin="anonymous">
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
+    <!-- Google Chart Insert from here , insert value using Jinja or using JAVASCRIPT ?-->
+    <script type="text/javascript">
+        google.charts.load('current', {packages: ['corechart', 'bar']});
+        google.charts.setOnLoadCallback(drawAnnotations);
+
+        function drawAnnotations() {
+        var data = google.visualization.arrayToDataTable([
+        
+            ['Group', '#1', '#2','#3','#4','#5','#6','#7','#8','#9','#10'],
+
+            {% for item_pod in scores  %}
+
+            {% if loop.index <= 10 %} //only take the first 10 items
+            ['{{ item_pod[21] }}', {{item_pod[1]}}, {{item_pod[2]}}, {{item_pod[3]}}, {{item_pod[4]}}, {{item_pod[5]}}, {{item_pod[6]}}, {{item_pod[7]}} , {{item_pod[8]}}, {{item_pod[9]}}, {{item_pod[10]}} ],
+            {% endif %}
+
+            {% endfor %}]);
+     
+        var options = {
+            isStacked : true,
+            title : "Top 10 Group Names Score"
+            chartArea: {width: '70%', height: '80%'},
+            legend : { position : 'right' },
+            annotations: {
+            alwaysOutside: true,
+            textStyle: {
+                fontSize: 12,
+                auraColor: 'none',
+                color: '#555'
+            },
+            boxStyle: {
+                stroke: '#ccc',
+                strokeWidth: 1,
+                gradient: {
+                color1: '#f3e5f5',
+                color2: '#f3e5f5',
+                x1: '0%', y1: '0%',
+                x2: '100%', y2: '100%'
+                }
+            }
+            },
+            hAxis: {
+            title: 'Total Score',
+            minValue: 0,
+            },
+            vAxis: {
+            title: 'Group Name'
+            }
+        };
+        var chart = new google.visualization.BarChart(document.getElementById('barchart_material'));
+        chart.draw(data, options);
+        }
+    </script>
+    <!-- Google Chart Insert ends here -->
+    
+        <title>LeaderBoard Score</title>
+    </head>
+    <body>
+            <header>
+                <div class="container-fluid">
+                    <div class="row" style="height:36px; background-color:black;"></div>
+                    <div class="row" style="height:90px; background-color:white;">
+                        <div class="col-lg-4">
+                            <div class="row align-items-center" style="height:90px;">
+                                <img src="static/fortinet-logo.svg" alt=""  class="class img-fluid">
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="row align-items-center justify-content-center display-3"
+                                 style="height:90px;">
+                                LEADERBOARD SCORE
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="height:36px; background-color:red;"></div>
+               
+            </div>
+        </header>
+        <main>
+            <div class="container-fluid">
+                <!-- start of table -->
+                <table id="tabelku" class="table table-striped table-dark table-hover table-sm"  style="background-color:rgba(0, 0, 0, 0);">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Pod#</th>
+                            <th scope="col">Group Name</th>
+                            <th scope="col">Case #1</th>
+                            <th scope="col">Case #2</th>
+                            <th scope="col">Case #3</th>
+                            <th scope="col">Case #4</th>
+                            <th scope="col">Case #5</th>
+                            <th scope="col">Case #6</th>
+                            <th scope="col">Case #7</th>
+                            <th scope="col">Case #8</th>
+                            <th scope="col">Case #9</th>
+                            <th scope="col">Case #10</th>
+                            <th scope="col">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for item_pod in scores  %}
+                    <!-- table row starts here -->
+                        <tr>
+                            <th scope="row">{{ loop.index }}</th>
+                            <td>{{ item_pod[0] }}</td>
+                            <td style="color:chartreuse;">{{ item_pod[21] }}</td>
+                            <td>{{ item_pod[1] }}</td>
+                            <td>{{ item_pod[2] }}</td>
+                            <td>{{ item_pod[3] }}</td>
+                            <td>{{ item_pod[4] }}</td>
+                            <td>{{ item_pod[5] }}</td>
+                            <td>{{ item_pod[6] }}</td>
+                            <td>{{ item_pod[7] }}</td>
+                            <td>{{ item_pod[8] }}</td>
+                            <td>{{ item_pod[9] }}</td>
+                            <td>{{ item_pod[10] }}</td>
+                            <td style="font-size:large; color:yellow">{{ item_pod[22] }}</td>
+                        </tr>
+                    <!-- table row ends here -->
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <!-- end of table -->
+                <!-- start of google charts -->
+                <div id="barchart_material" style="display:none"></div>
+                <!-- end of google charts -->
+            </div>
+        </main>
+        <footer>
+            <div class="row" style="height:90px; background-color:black;"> 
+                <div class="col">
+                    <div class="row align-items-center" style="height:90px;">
+                        <img src="static/fortinet-footer-logo.svg" alt="" class="class" height="30px">
+                    </div>
+                </div>
+            </div>
+        </footer>
+    <!-- Optional JavaScript; choose one of the two! -->
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    -->
+</body>
+<script>
+    setTimeout(function(){
+        document.getElementById("barchart_material").style="width: 1200px; height: 800px; display:visible" ;   // must specify width and height , and display the chart now
+        document.getElementById('tabelku').style="display:none" ;    // undisplay the table
+        drawAnnotations();
+
+       setTimeout(function(){
+            window.location.reload(1)},10000); //  for second timeout, reload the page 
+
+}, 10000);
+</script>
+</html>
+

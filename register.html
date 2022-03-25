@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+              rel="stylesheet"
+              integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+              crossorigin="anonymous">
+        <title>Registration Page</title>
+    </head>
+    <body>
+        <header>
+            <div class="container-fluid">
+                <div class="row" style="height:36px; background-color:black;"></div>
+                <div class="row" style="height:90px; background-color:white;">
+                    <div class="col-lg-4">
+                        <div class="row align-items-center" style="height:90px;">
+                            <img src="../static/fortinet-logo.svg" alt=""  class="class img-fluid">
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="row align-items-center justify-content-center display-3"
+                             style="height:90px;">Registration Page</div>
+                    </div>
+                </div>
+                <div class="row" style="height:36px; background-color:red;"></div>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <div class="row justify-content-center mt-5">
+                <div class="col-2"></div>
+                <div class="col-2">
+                    <img src="../static/ftnt-range.png" class="img-fluid">
+                </div>
+                <div class="col-6">
+                    <div>
+                        <input class="form-control" type="text" id="name" placeholder="Group Name">
+                    </div>
+                    <div>
+                        <input class="form-control mt-1"
+                               type="text"
+                               id="email"
+                               placeholder="Email Address">
+                    </div>
+                    <div>
+                        <input class="form-control mt-1"
+                               type="text"
+                               id="company"
+                               placeholder="Company Name">
+                    </div>
+                    <div>
+                        <input class="form-control mt-1" type="text" id="token" placeholder="Token">
+                    </div>
+                    <div class="row justify-content-center">
+                        <button type="button" id="button_register" class="btn btn-primary mt-2">Register</button>
+                    </div>
+                    <div id="regsuccess" class="alert alert-success mt-5" style="display:none" role="alert">XXX</div>
+                    <div id="regfailed" class="alert alert-danger mt-5" style="display:none" role="alert">Sorry, your token is not registered. Please contact your administrator !</div>
+
+                </div>
+                <div class="col-2"></div>
+            </div>
+        </div>
+        <main>
+        </main>
+        <footer>
+        </footer>
+        <!-- Optional JavaScript; choose one of the two! -->
+        <!-- Option 1: Bootstrap Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+        <!-- Option 2: Separate Popper and Bootstrap JS -->
+        <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    -->
+    </body>
+    <script>
+
+document.getElementById("button_register").addEventListener("click", registeruser);
+
+function registeruser() {
+
+    name = document.getElementById('name').value;
+    email = document.getElementById('email').value;
+    company = document.getElementById('company').value;
+    token = document.getElementById('token').value;
+
+    // will need to do validation of the inputs, skip it for now...
+    
+    URL_SCORE = "/pod-save?"+encodeURI("token="+token+"&group="+name+"&email="+email+"&company="+company);
+
+    //alert(URL_SCORE);
+    const Http = new XMLHttpRequest();
+    Http.open("GET", URL_SCORE);
+    Http.send();
+
+    Http.onreadystatechange = (e) => {
+            console.log(Http.responseText)
+            resp = JSON.parse(Http.responseText)
+            if (resp.result==0) {
+                document.getElementById("regfailed").style="display:block";
+            }
+            else {
+               document.getElementById('regsuccess').innerHTML =
+                    "Hi, "+name+"! Welcome to the game<p>You have been assigned to Pod Station #"+resp.result+"<p>"+
+                    "You can start and jump to your personal dashboard by <a target='_blank' href='http://"+resp.ip+":18880/'>clicking here</a><p>"+
+                    "We are also sending this information to your email address shortly...."
+                document.getElementById("regsuccess").style="display:block";
+                document.getElementById("regfailed").style="display:none";
+                document.getElementById('name').disabled=true
+                document.getElementById('email').disabled=true
+                document.getElementById('company').disabled=true
+                document.getElementById('token').disabled=true
+                document.getElementById('button_register').disabled=true
+                // will add cookie as well, so if user refresh multple time, they also can only see this
+                document.cookie = "status=registered"
+                document.cookie = "name="+name
+                document.cookie = "podip="+resp.ip
+            }
+    }
+
+    }
+
+
+</script>
+</html>
